@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shimamoto Local Connecting Project</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;600;700&family=Shippori+Mincho:wght@400;600;800&family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1C1410;
+    --gold: #C9A87C;
+    --gold-light: #E8D5B0;
+    --gold-pale: #F5EDE0;
+    --cream: #FAF6F0;
+    --red: #8B2020;
+    --sage: #5C7A5C;
+    --paper: #F2EBE0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Noto Serif JP', serif;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    position: relative;
+    overflow: hidden;
+    background: var(--ink);
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 40%, rgba(201,168,124,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 80% at 20% 80%, rgba(92,122,92,0.08) 0%, transparent 50%),
+      linear-gradient(160deg, #1C1410 0%, #2C2018 50%, #1A1208 100%);
+  }
+
+  /* 水の波紋アニメーション */
+  .ripple {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(201,168,124,0.15);
+    animation: ripple-out 8s ease-out infinite;
+  }
+  .ripple:nth-child(1) { width: 300px; height: 300px; top: 20%; right: 10%; animation-delay: 0s; }
+  .ripple:nth-child(2) { width: 500px; height: 500px; top: 15%; right: 7%; animation-delay: 2s; }
+  .ripple:nth-child(3) { width: 700px; height: 700px; top: 10%; right: 4%; animation-delay: 4s; }
+
+  @keyframes ripple-out {
+    0% { opacity: 0.5; transform: scale(0.8); }
+    100% { opacity: 0; transform: scale(1.2); }
+  }
+
+  nav {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 48px;
+    border-bottom: 1px solid rgba(201,168,124,0.15);
+  }
+
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 36px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: rgba(201,168,124,0.6);
+    text-decoration: none;
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+  .nav-links a:hover { color: var(--gold); }
+
+  .hero-content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 80px 48px;
+    max-width: 900px;
+  }
+
+  .hero-eyebrow {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 13px;
+    letter-spacing: 6px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: fade-up 1s 0.3s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: clamp(42px, 6vw, 72px);
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--cream);
+    margin-bottom: 16px;
+    opacity: 0;
+    animation: fade-up 1s 0.5s forwards;
+  }
+
+  .hero-title em {
+    font-style: italic;
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    color: var(--gold);
+    display: block;
+    font-size: 0.85em;
+  }
+
+  .hero-subtitle {
+    font-size: 15px;
+    line-height: 2;
+    color: rgba(242,235,224,0.65);
+    max-width: 540px;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: fade-up 1s 0.7s forwards;
+  }
+
+  .hero-cta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fade-up 1s 0.9s forwards;
+  }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 36px;
+    background: linear-gradient(135deg, var(--gold), #A07840);
+    color: var(--ink);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.15);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .btn-primary:hover::after { opacity: 1; }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(201,168,124,0.3); }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 36px;
+    background: transparent;
+    color: var(--gold-light);
+    font-family: 'Noto Serif JP', serif;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-decoration: none;
+    border: 1px solid rgba(201,168,124,0.4);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .btn-secondary:hover {
+    background: rgba(201,168,124,0.1);
+    border-color: var(--gold);
+  }
+
+  .hero-bottom {
+    position: relative;
+    z-index: 10;
+    padding: 28px 48px;
+    display: flex;
+    gap: 48px;
+    border-top: 1px solid rgba(201,168,124,0.1);
+  }
+
+  .hero-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .hero-stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--gold);
+  }
+
+  .hero-stat-label {
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: rgba(201,168,124,0.5);
+    text-transform: uppercase;
+  }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── SECTION BASE ── */
+  section { padding: 100px 48px; }
+
+  .section-label {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px;
+    letter-spacing: 5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: clamp(28px, 4vw, 44px);
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 24px;
+    color: var(--ink);
+  }
+
+  .section-body {
+    font-size: 15px;
+    line-height: 2;
+    color: #4A3828;
+    max-width: 600px;
+  }
+
+  /* ── PROBLEM ── */
+  .problem {
+    background: var(--paper);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .problem::before {
+    content: '課題';
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
+    font-family: 'Shippori Mincho', serif;
+    font-size: 120px;
+    font-weight: 800;
+    color: rgba(139,32,32,0.04);
+    letter-spacing: -10px;
+    pointer-events: none;
+  }
+
+  .problem-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .problem-left { grid-column: 1; }
+
+  .problem-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    grid-column: 2;
+  }
+
+  .problem-card {
+    background: white;
+    border-left: 3px solid var(--red);
+    padding: 20px 24px;
+    box-shadow: 0 2px 16px rgba(28,20,16,0.06);
+  }
+
+  .problem-card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--red);
+    margin-bottom: 6px;
+    letter-spacing: 1px;
+  }
+
+  .problem-card-text {
+    font-size: 13px;
+    line-height: 1.8;
+    color: #4A3828;
+  }
+
+  /* ── SOLUTION ── */
+  .solution {
+    background: var(--ink);
+    color: var(--cream);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .solution .section-title { color: var(--cream); }
+  .solution .section-body { color: rgba(242,235,224,0.7); }
+
+  .solution-flow {
+    display: flex;
+    gap: 0;
+    margin-top: 64px;
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .flow-step {
+    flex: 1;
+    padding: 32px 28px;
+    border-right: 1px solid rgba(201,168,124,0.15);
+    position: relative;
+  }
+  .flow-step:last-child { border-right: none; }
+
+  .flow-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 300;
+    color: rgba(201,168,124,0.2);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .flow-icon { font-size: 28px; margin-bottom: 12px; }
+
+  .flow-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--gold-light);
+    margin-bottom: 8px;
+  }
+
+  .flow-text {
+    font-size: 12px;
+    line-height: 1.9;
+    color: rgba(242,235,224,0.55);
+  }
+
+  .flow-arrow {
+    position: absolute;
+    right: -14px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 28px;
+    height: 28px;
+    background: rgba(201,168,124,0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--gold);
+    z-index: 1;
+  }
+
+  /* ── APP DEMO ── */
+  .demo {
+    background: var(--gold-pale);
+    position: relative;
+  }
+
+  .demo-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  .demo-phone {
+    position: relative;
+    display: flex;
+    justify-content: center;
+  }
+
+  .phone-frame {
+    width: 260px;
+    background: var(--ink);
+    border-radius: 36px;
+    padding: 16px;
+    box-shadow:
+      0 40px 80px rgba(28,20,16,0.25),
+      0 0 0 1px rgba(201,168,124,0.2),
+      inset 0 0 0 1px rgba(255,255,255,0.05);
+    position: relative;
+  }
+
+  .phone-notch {
+    width: 80px;
+    height: 6px;
+    background: #2C2018;
+    border-radius: 3px;
+    margin: 0 auto 12px;
+  }
+
+  .phone-screen {
+    background: linear-gradient(160deg, #F5EFE6, #EAE0D0);
+    border-radius: 24px;
+    overflow: hidden;
+    font-size: 10px;
+  }
+
+  .ps-header {
+    background: linear-gradient(135deg, #3D2B1F, #5C3D2E);
+    padding: 12px 14px 10px;
+  }
+
+  .ps-header-sub {
+    font-size: 6px;
+    letter-spacing: 3px;
+    color: #C9A87C;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .ps-header-title {
+    font-size: 13px;
+    font-weight: bold;
+    color: #F5EFE6;
+    font-family: 'Noto Serif JP', serif;
+  }
+
+  .ps-body { padding: 12px; }
+
+  .ps-card {
+    background: linear-gradient(145deg, #FFF8F0, #F5EAD8);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(201,168,124,0.2);
+  }
+
+  .ps-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .ps-stamp-num {
+    font-size: 18px;
+    font-weight: bold;
+    color: #3D2B1F;
+    font-family: 'Shippori Mincho', serif;
+  }
+
+  .ps-point {
+    font-size: 14px;
+    font-weight: bold;
+    color: #C9A87C;
+    font-family: 'Shippori Mincho', serif;
+  }
+
+  .ps-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    margin-bottom: 8px;
+  }
+
+  .ps-dot {
+    aspect-ratio: 1;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  .ps-dot.filled { background: rgba(201,168,124,0.3); border: 1.5px solid #C9A87C; }
+  .ps-dot.empty { background: rgba(255,255,255,0.5); border: 1.5px solid rgba(139,99,72,0.18); font-size: 8px; color: rgba(139,99,72,0.3); }
+
+  .ps-bar { height: 3px; background: rgba(139,99,72,0.1); border-radius: 2px; overflow: hidden; }
+  .ps-bar-fill { height: 100%; width: 60%; background: linear-gradient(90deg, #C9A87C, #A07840); border-radius: 2px; }
+
+  .ps-store {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.6);
+    border-radius: 8px;
+    padding: 7px 8px;
+    margin-bottom: 6px;
+    border: 1px solid rgba(139,99,72,0.1);
+  }
+
+  .ps-store-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
+
+  .ps-store-name { font-size: 10px; font-weight: bold; color: #2C2018; }
+  .ps-store-cat { font-size: 8px; color: #8B6348; }
+
+  .ps-mini-bar { height: 2px; background: rgba(139,99,72,0.1); border-radius: 1px; overflow: hidden; margin-top: 3px; }
+  .ps-mini-fill { height: 100%; border-radius: 1px; }
+
+  .ps-qr-btn {
+    width: 100%;
+    padding: 8px;
+    background: linear-gradient(135deg, #3D2B1F, #5C3D2E);
+    color: #F5EFE6;
+    border: none;
+    border-radius: 8px;
+    font-size: 9px;
+    text-align: center;
+    margin-top: 4px;
+    font-family: 'Noto Serif JP', serif;
+  }
+
+  .demo-right { }
+
+  .demo-features {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    margin-top: 40px;
+  }
+
+  .demo-feature {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 20px;
+    background: white;
+    border-radius: 2px;
+    box-shadow: 0 2px 12px rgba(28,20,16,0.06);
+    border-left: 2px solid var(--gold);
+    transition: all 0.3s;
+  }
+  .demo-feature:hover { transform: translateX(4px); box-shadow: 0 4px 20px rgba(28,20,16,0.1); }
+
+  .demo-feature-icon { font-size: 24px; flex-shrink: 0; }
+
+  .demo-feature-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .demo-feature-text {
+    font-size: 12px;
+    line-height: 1.8;
+    color: #6A5040;
+  }
+
+  /* ── ROADMAP ── */
+  .roadmap {
+    background: white;
+    position: relative;
+  }
+
+  .roadmap-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .roadmap-timeline {
+    position: relative;
+    margin-top: 64px;
+  }
+
+  .roadmap-timeline::before {
+    content: '';
+    position: absolute;
+    left: 140px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--gold), rgba(201,168,124,0.1));
+  }
+
+  .roadmap-item {
+    display: flex;
+    gap: 40px;
+    margin-bottom: 48px;
+    align-items: flex-start;
+  }
+
+  .roadmap-phase {
+    width: 100px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .roadmap-phase-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+  }
+
+  .roadmap-phase-time {
+    font-size: 11px;
+    color: #A08070;
+    margin-top: 2px;
+  }
+
+  .roadmap-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+    margin-top: 4px;
+    box-shadow: 0 0 0 4px rgba(201,168,124,0.15);
+  }
+
+  .roadmap-dot.future {
+    background: rgba(201,168,124,0.3);
+    border: 1px solid var(--gold);
+  }
+
+  .roadmap-content { flex: 1; }
+
+  .roadmap-title {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+
+  .roadmap-text {
+    font-size: 13px;
+    line-height: 1.9;
+    color: #6A5040;
+    margin-bottom: 12px;
+  }
+
+  .roadmap-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .roadmap-tag {
+    padding: 4px 12px;
+    background: var(--gold-pale);
+    border: 1px solid rgba(201,168,124,0.3);
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: #8B6348;
+  }
+
+  /* ── FUNDING ── */
+  .funding {
+    background: var(--paper);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .funding::after {
+    content: '支援';
+    position: absolute;
+    left: -30px;
+    bottom: -20px;
+    font-family: 'Shippori Mincho', serif;
+    font-size: 180px;
+    font-weight: 800;
+    color: rgba(201,168,124,0.06);
+    pointer-events: none;
+  }
+
+  .funding-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .funding-plans {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .funding-plan {
+    background: white;
+    border: 1px solid rgba(201,168,124,0.2);
+    padding: 24px 28px;
+    position: relative;
+    transition: all 0.3s;
+  }
+
+  .funding-plan:hover {
+    border-color: var(--gold);
+    box-shadow: 0 8px 32px rgba(201,168,124,0.15);
+    transform: translateY(-2px);
+  }
+
+  .funding-plan.featured {
+    border-color: var(--gold);
+    background: linear-gradient(135deg, #FFF8F0, #F5EAD8);
+  }
+
+  .plan-badge {
+    position: absolute;
+    top: -1px;
+    right: 20px;
+    background: var(--gold);
+    color: var(--ink);
+    font-size: 9px;
+    letter-spacing: 2px;
+    padding: 4px 12px;
+    font-weight: 600;
+  }
+
+  .plan-amount {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .plan-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #8B6348;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+  }
+
+  .plan-perks {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .plan-perks li {
+    font-size: 12px;
+    color: #6A5040;
+    line-height: 1.6;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .plan-perks li::before {
+    content: '—';
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .plan-btn {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 11px 20px;
+    text-align: center;
+    text-decoration: none;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    border: 1.5px solid rgba(201,168,124,0.4);
+    color: #8B6348;
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  .plan-btn:hover {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: var(--ink);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(201,168,124,0.25);
+  }
+  .funding-plan.featured .plan-btn {
+    background: linear-gradient(135deg, var(--gold), #A07840);
+    border-color: var(--gold);
+    color: var(--ink);
+  }
+  .funding-plan.featured .plan-btn:hover {
+    box-shadow: 0 8px 28px rgba(201,168,124,0.4);
+  }
+
+  .plan-btn-coming {
+    display: block;
+    width: 100%;
+    margin-top: 16px;
+    padding: 10px 20px;
+    text-align: center;
+    font-family: 'Noto Serif JP', serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    color: rgba(139,99,72,0.45);
+    border: 1.5px dashed rgba(201,168,124,0.25);
+    background: transparent;
+    cursor: default;
+  }
+
+  .funding-right { }
+
+  .funding-use {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .use-item {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .use-bar-wrap {
+    flex: 1;
+    height: 6px;
+    background: rgba(201,168,124,0.15);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .use-bar {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--gold), #A07840);
+  }
+
+  .use-label {
+    font-size: 12px;
+    color: #6A5040;
+    width: 160px;
+    flex-shrink: 0;
+  }
+
+  .use-pct {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--gold);
+    width: 48px;
+    text-align: right;
+    flex-shrink: 0;
+  }
+
+  /* ── FOUNDER ── */
+  .founder {
+    background: var(--ink);
+    color: var(--cream);
+  }
+
+  .founder-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 64px;
+    align-items: start;
+  }
+
+  .founder-avatar {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(201,168,124,0.3), rgba(201,168,124,0.1));
+    border: 2px solid rgba(201,168,124,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 48px;
+    flex-shrink: 0;
+  }
+
+  .founder-role {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .founder-name {
+    font-family: 'Shippori Mincho', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--cream);
+    margin-bottom: 20px;
+  }
+
+  .founder-message {
+    font-size: 14px;
+    line-height: 2.2;
+    color: rgba(242,235,224,0.7);
+    max-width: 600px;
+    border-left: 2px solid rgba(201,168,124,0.3);
+    padding-left: 24px;
+    font-style: italic;
+  }
+
+  /* ── CTA ── */
+  .cta-section {
+    background: linear-gradient(135deg, var(--gold-pale), #EAD8C0);
+    text-align: center;
+    padding: 120px 48px;
+  }
+
+  .cta-section .section-title {
+    font-size: clamp(28px, 4vw, 48px);
+    margin-bottom: 16px;
+  }
+
+  .cta-section .section-body {
+    margin: 0 auto 48px;
+    text-align: center;
+    max-width: 500px;
+  }
+
+  .cta-buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    padding: 48px;
+    text-align: center;
+    border-top: 1px solid rgba(201,168,124,0.1);
+  }
+
+  .footer-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    letter-spacing: 4px;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .footer-sub {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: rgba(201,168,124,0.4);
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+
+  .footer-copy {
+    font-size: 11px;
+    color: rgba(242,235,224,0.25);
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    width: 60px;
+    height: 1px;
+    background: var(--gold);
+    margin: 24px 0;
+  }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 768px) {
+    nav { padding: 20px 24px; }
+    .nav-links { display: none; }
+    section { padding: 64px 24px; }
+    .hero-content { padding: 48px 24px; }
+    .hero-bottom { padding: 20px 24px; gap: 24px; }
+    .problem-grid, .demo-inner, .funding-inner, .founder-inner { grid-template-columns: 1fr; }
+    .solution-flow { flex-direction: column; }
+    .flow-step { border-right: none; border-bottom: 1px solid rgba(201,168,124,0.15); }
+    .flow-arrow { display: none; }
+    .roadmap-timeline::before { left: 80px; }
+    .roadmap-phase { width: 60px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="ripple"></div>
+  <div class="ripple"></div>
+  <div class="ripple"></div>
+
+  <nav>
+    <div class="nav-logo">SLCP</div>
+    <ul class="nav-links">
+      <li><a href="#problem">背景</a></li>
+      <li><a href="#solution">解決策</a></li>
+      <li><a href="#demo">アプリ</a></li>
+      <li><a href="#roadmap">計画</a></li>
+      <li><a href="#funding">支援</a></li>
+    </ul>
+  </nav>
+
+  <div class="hero-content">
+    <div class="hero-eyebrow">Shimamoto Local Connecting Project</div>
+    <h1 class="hero-title">
+      島本町を、<br>
+      もっと豊かに。
+      <em>Technology × Community</em>
+    </h1>
+    <p class="hero-subtitle">
+      地域スタンプアプリで商店街と住民をつなぎ、<br>
+      島本町に持続可能な経済循環を生み出す。<br>
+      テクノロジーを通じて、地域の「当たり前」を変える。
+    </p>
+    <div class="hero-cta">
+      <a href="#funding" class="btn-primary cflink">🏮 このプロジェクトを支援する</a>
+      <a href="#demo" class="btn-secondary">▶ アプリを見る</a>
+    </div>
+  </div>
+
+  <div class="hero-bottom">
+    <div class="hero-stat">
+      <span class="hero-stat-num">2026</span>
+      <span class="hero-stat-label">発足年</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-num">8+</span>
+      <span class="hero-stat-label">想定加盟店</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-num">33,000</span>
+      <span class="hero-stat-label">島本町人口</span>
+    </div>
+    <div class="hero-stat">
+      <span class="hero-stat-num">toG</span>
+      <span class="hero-stat-label">最終展望</span>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section class="problem" id="problem">
+  <div class="problem-grid">
+    <div class="problem-left reveal">
+      <div class="section-label">背景・課題</div>
+      <h2 class="section-title">島本の商店街は<br>なぜ危機なのか</h2>
+      <div class="divider"></div>
+      <p class="section-body">
+        島本町の商店街は、大型商業施設や EC サイトとの競争にさらされ続けている。
+        地域に根ざした個人商店が持つ魅力や価値は十分に伝わらず、
+        住民との接点は年々細くなっている。
+        テクノロジーへの不慣れも相まって、デジタル化の波に乗り遅れているのが現状だ。
+      </p>
+    </div>
+    <div class="problem-cards">
+      <div class="problem-card reveal reveal-delay-1">
+        <div class="problem-card-title">商店街の集客不足</div>
+        <div class="problem-card-text">近隣の大型SCや Amazon により、地域商店への来客数が年々減少。リピーター獲得の仕組みがない。</div>
+      </div>
+      <div class="problem-card reveal reveal-delay-2">
+        <div class="problem-card-title">デジタル化の遅れ</div>
+        <div class="problem-card-text">紙のスタンプカードやチラシに依存。来店データの蓄積も分析もできていない。</div>
+      </div>
+      <div class="problem-card reveal reveal-delay-3">
+        <div class="problem-card-title">地域内消費の流出</div>
+        <div class="problem-card-text">住民の購買力が地域外へ流出し続けている。地域経済の循環が生まれていない。</div>
+      </div>
+      <div class="problem-card reveal reveal-delay-4">
+        <div class="problem-card-title">高齢化と担い手不足</div>
+        <div class="problem-card-text">店主の高齢化が進み、新しい取り組みへの障壁が高い。若い世代との接点も薄れている。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section class="solution" id="solution">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div class="section-label reveal">解決策</div>
+    <h2 class="section-title reveal">地域スタンプアプリで<br>循環をつくる</h2>
+    <p class="section-body reveal">
+      QRコードによる安全なスタンプ収集と共通ポイントシステムで、
+      商店街と住民の継続的なつながりを生み出す。
+      まず島本町で実績を作り、全国の商店街・自治体へ展開する。
+    </p>
+  </div>
+  <div class="solution-flow">
+    <div class="flow-step reveal reveal-delay-1">
+      <div class="flow-num">01</div>
+      <div class="flow-icon">🏪</div>
+      <div class="flow-title">店舗がQRを設置</div>
+      <div class="flow-text">管理画面から毎日自動更新されるQRコードを印刷・設置。コストゼロで導入できる。</div>
+      <div class="flow-arrow">›</div>
+    </div>
+    <div class="flow-step reveal reveal-delay-2">
+      <div class="flow-num">02</div>
+      <div class="flow-icon">📱</div>
+      <div class="flow-title">住民がスキャン</div>
+      <div class="flow-text">来店時にスマホでQRをスキャン。1日1回・サーバー側検証で不正を完全防止。</div>
+      <div class="flow-arrow">›</div>
+    </div>
+    <div class="flow-step reveal reveal-delay-3">
+      <div class="flow-num">03</div>
+      <div class="flow-icon">🏮</div>
+      <div class="flow-title">スタンプが貯まる</div>
+      <div class="flow-text">同じ店舗へ繰り返し来店するほど効率が下がる設計で、多店舗巡回を促進。</div>
+      <div class="flow-arrow">›</div>
+    </div>
+    <div class="flow-step reveal reveal-delay-4">
+      <div class="flow-num">04</div>
+      <div class="flow-icon">🎁</div>
+      <div class="flow-title">特典＋共通Pが貯まる</div>
+      <div class="flow-text">個店の特典に加え、町内共通ポイントも同時付与。地域全体の消費循環が生まれる。</div>
+    </div>
+  </div>
+</section>
+
+<!-- APP DEMO -->
+<section class="demo" id="demo">
+  <div class="demo-inner">
+    <div class="demo-phone reveal">
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="ps-header">
+            <div class="ps-header-sub">Shimamoto Town</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;">
+              <div class="ps-header-title">島本スタンプ</div>
+              <div style="font-size:9px;background:rgba(201,168,124,0.2);color:#C9A87C;padding:3px 8px;border-radius:10px;">ログイン</div>
+            </div>
+          </div>
+          <div class="ps-body">
+            <div class="ps-card">
+              <div class="ps-row">
+                <div>
+                  <div style="font-size:8px;color:#8B6348;margin-bottom:2px;">スタンプ合計</div>
+                  <div class="ps-stamp-num">4.5<span style="font-size:9px;color:#8B6348;margin-left:2px;">pt</span></div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:8px;color:#8B6348;margin-bottom:2px;">共通ポイント</div>
+                  <div class="ps-point">45P</div>
+                </div>
+              </div>
+              <div class="ps-grid">
+                <div class="ps-dot filled">🍶</div>
+                <div class="ps-dot filled">🥬</div>
+                <div class="ps-dot filled">🍞</div>
+                <div class="ps-dot filled">☕</div>
+                <div class="ps-dot filled">🎁</div>
+                <div class="ps-dot empty">○</div>
+                <div class="ps-dot empty">○</div>
+                <div class="ps-dot empty">○</div>
+              </div>
+              <div class="ps-bar"><div class="ps-bar-fill"></div></div>
+              <div style="font-size:7px;color:#8B6348;margin-top:4px;text-align:center;">5 / 8 店舗訪問済み</div>
+            </div>
+            <div style="background:linear-gradient(135deg,rgba(201,168,124,0.18),rgba(160,120,64,0.1));border:1.5px solid #C9A87C;border-radius:8px;padding:7px 10px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+              <span style="font-size:14px;">🎁</span>
+              <div>
+                <div style="font-size:9px;font-weight:bold;color:#3D2B1F;">桜カフェの特典が使えます！</div>
+                <div style="font-size:8px;color:#8B6348;">ドリンク1杯無料</div>
+              </div>
+            </div>
+            <div class="ps-store">
+              <div class="ps-store-icon" style="background:rgba(139,69,19,0.15);">🍶</div>
+              <div style="flex:1;">
+                <div class="ps-store-name">水無瀬の酒屋</div>
+                <div class="ps-store-cat">酒屋 · 2回来店 · ✓今日来店済</div>
+                <div class="ps-mini-bar"><div class="ps-mini-fill" style="width:100%;background:#8B4513;"></div></div>
+              </div>
+            </div>
+            <div class="ps-store">
+              <div class="ps-store-icon" style="background:rgba(45,106,45,0.15);">🥬</div>
+              <div style="flex:1;">
+                <div class="ps-store-name">島本青果店</div>
+                <div class="ps-store-cat">青果店 · 3回来店 · ×0.5</div>
+                <div class="ps-mini-bar"><div class="ps-mini-fill" style="width:75%;background:#2D6A2D;"></div></div>
+              </div>
+            </div>
+            <div class="ps-qr-btn">📷 QRコードをスキャン</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-right reveal reveal-delay-2">
+      <div class="section-label">アプリ紹介</div>
+      <h2 class="section-title">シンプルに、<br>安全に使える</h2>
+      <p class="section-body">
+        住民は来店してQRをスキャンするだけ。
+        店舗はQRを印刷して置くだけ。
+        複雑な操作は一切不要で、高齢者にも使いやすい設計。
+      </p>
+      <div class="demo-features">
+        <div class="demo-feature">
+          <div class="demo-feature-icon">🔐</div>
+          <div>
+            <div class="demo-feature-title">サーバー側QR検証で不正防止</div>
+            <div class="demo-feature-text">毎日自動更新されるQRトークンをサーバーで検証。スクリーンショット共有・使い回しによる不正を完全防止。</div>
+          </div>
+        </div>
+        <div class="demo-feature">
+          <div class="demo-feature-icon">📊</div>
+          <div>
+            <div class="demo-feature-title">3回目以降は0.5スタンプ</div>
+            <div class="demo-feature-text">同じ店への過度な集中を防ぎ、多様な店舗への来店を促進。商店街全体の底上げを実現。</div>
+          </div>
+        </div>
+        <div class="demo-feature">
+          <div class="demo-feature-icon">🏘️</div>
+          <div>
+            <div class="demo-feature-title">個店特典 + 共通ポイントの二層構造</div>
+            <div class="demo-feature-text">各店舗の個別特典に加え、町内共通ポイントも同時に貯まる。地域内消費循環の仕組みを作る。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section class="roadmap" id="roadmap">
+  <div class="roadmap-inner">
+    <div class="section-label reveal">事業計画</div>
+    <h2 class="section-title reveal">島本から、<br>全国へ</h2>
+    <p class="section-body reveal">toB → toG という段階的な展開で、持続可能なビジネスモデルを構築する。</p>
+
+    <div class="roadmap-timeline">
+      <div class="roadmap-item reveal">
+        <div class="roadmap-phase">
+          <div class="roadmap-phase-name">Phase 1</div>
+          <div class="roadmap-phase-time">2026年</div>
+        </div>
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-content">
+          <div class="roadmap-title">島本町での実証実験</div>
+          <div class="roadmap-text">島本センター商店街を中心に8〜10店舗での導入。住民へのアプリ普及とデータ蓄積。成功事例として「島本モデル」を確立する。</div>
+          <div class="roadmap-tags">
+            <span class="roadmap-tag">スタンプアプリ</span>
+            <span class="roadmap-tag">QR決済</span>
+            <span class="roadmap-tag">共通ポイント</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item reveal">
+        <div class="roadmap-phase">
+          <div class="roadmap-phase-name">Phase 2</div>
+          <div class="roadmap-phase-time">2027年</div>
+        </div>
+        <div class="roadmap-dot"></div>
+        <div class="roadmap-content">
+          <div class="roadmap-title">阪急沿線エリアへの横展開（toB）</div>
+          <div class="roadmap-text">高槻・茨木・長岡京など近隣商店街へのSaaS展開。月額課金モデルで安定収益を確立。島本での実績が最大の営業ツールになる。</div>
+          <div class="roadmap-tags">
+            <span class="roadmap-tag">SaaS展開</span>
+            <span class="roadmap-tag">月額課金</span>
+            <span class="roadmap-tag">阪急沿線</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="roadmap-item reveal">
+        <div class="roadmap-phase">
+          <div class="roadmap-phase-name">Phase 3</div>
+          <div class="roadmap-phase-time">2028年〜</div>
+        </div>
+        <div class="roadmap-dot future"></div>
+        <div class="roadmap-content">
+          <div class="roadmap-title">自治体・行政との連携（toG）</div>
+          <div class="roadmap-text">デジタル田園都市国家構想交付金の対象事業として自治体に提案。商工会議所・観光協会との包括契約。「島本町公認」の実績が全国展開の信用になる。</div>
+          <div class="roadmap-tags">
+            <span class="roadmap-tag">デジタル田園都市</span>
+            <span class="roadmap-tag">行政連携</span>
+            <span class="roadmap-tag">全国展開</span>
+            <span class="roadmap-tag">iOS/Android</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FUNDING -->
+<section class="funding" id="funding">
+  <div class="funding-inner">
+    <div>
+      <div class="section-label reveal">支援プラン</div>
+      <h2 class="section-title reveal">このプロジェクトを<br>一緒に育てる</h2>
+      <p class="section-body reveal">
+        クラウドファンディングへの参加を検討している方へ。
+        支援は島本町の未来への投資です。
+      </p>
+      <div class="funding-plans" style="margin-top:40px;">
+        <div class="funding-plan reveal reveal-delay-1">
+          <div class="plan-amount">¥1,000</div>
+          <div class="plan-name">応援コース</div>
+          <ul class="plan-perks">
+            <li>活動報告メール配信</li>
+            <li>島本スタンプアプリ先行利用権</li>
+          </ul>
+          <a href="#" class="plan-btn cflink" target="_blank" rel="noopener">🏮 このコースで支援する</a>
+        </div>
+        <div class="funding-plan featured reveal reveal-delay-2">
+          <div class="plan-badge">人気</div>
+          <div class="plan-amount">¥5,000</div>
+          <div class="plan-name">地域サポーターコース</div>
+          <ul class="plan-perks">
+            <li>応援コースのすべて</li>
+            <li>加盟店での共通ポイント 500P プレゼント</li>
+            <li>サポーター限定イベントへの招待</li>
+          </ul>
+          <a href="#" class="plan-btn cflink" target="_blank" rel="noopener">🏮 このコースで支援する</a>
+        </div>
+        <div class="funding-plan reveal reveal-delay-3">
+          <div class="plan-amount">¥30,000</div>
+          <div class="plan-name">加盟店オーナーコース</div>
+          <ul class="plan-perks">
+            <li>地域サポーターコースのすべて</li>
+            <li>アプリへの店舗掲載（初年度無料）</li>
+            <li>月次来店データレポート提供</li>
+            <li>プロジェクト運営への意見参加権</li>
+          </ul>
+          <a href="#" class="plan-btn cflink" target="_blank" rel="noopener">🏮 このコースで支援する</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="reveal reveal-delay-2">
+      <div class="section-label">資金の使い道</div>
+      <h3 style="font-family:'Shippori Mincho',serif;font-size:22px;font-weight:700;margin-bottom:8px;color:var(--ink);">集まった資金は<br>こう使います</h3>
+      <div class="divider"></div>
+      <p style="font-size:13px;line-height:2;color:#6A5040;margin-bottom:32px;">
+        透明性を持って運営します。支援いただいた資金は<br>
+        以下の用途に充てる予定です。
+      </p>
+      <div class="funding-use">
+        <div class="use-item">
+          <div class="use-label">アプリ開発・改善</div>
+          <div class="use-bar-wrap"><div class="use-bar" style="width:40%"></div></div>
+          <div class="use-pct">40%</div>
+        </div>
+        <div class="use-item">
+          <div class="use-label">加盟店開拓・営業</div>
+          <div class="use-bar-wrap"><div class="use-bar" style="width:25%"></div></div>
+          <div class="use-pct">25%</div>
+        </div>
+        <div class="use-item">
+          <div class="use-label">住民向け普及活動</div>
+          <div class="use-bar-wrap"><div class="use-bar" style="width:20%"></div></div>
+          <div class="use-pct">20%</div>
+        </div>
+        <div class="use-item">
+          <div class="use-label">サーバー・インフラ</div>
+          <div class="use-bar-wrap"><div class="use-bar" style="width:10%"></div></div>
+          <div class="use-pct">10%</div>
+        </div>
+        <div class="use-item">
+          <div class="use-label">法人化・手数料</div>
+          <div class="use-bar-wrap"><div class="use-bar" style="width:5%"></div></div>
+          <div class="use-pct">5%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOUNDER -->
+<section class="founder">
+  <div class="founder-inner">
+    <div class="founder-avatar reveal">🏮</div>
+    <div class="reveal reveal-delay-1">
+      <div class="founder-role">Founder</div>
+      <div class="founder-name">Shimamoto Local Connecting Project</div>
+      <p class="founder-message">
+        「島本町をもっと豊かにしたい」という想いから、このプロジェクトを立ち上げました。<br><br>
+        テクノロジーは手段です。目的は、地域の商店街が続いていくこと、
+        住民が地元の店に親しみを持って通い続けること、
+        そして島本町という場所が次の世代にも誇りを持って語られるコミュニティであり続けること。<br><br>
+        小さな一歩から始めます。ぜひ一緒に島本の未来を作りましょう。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="section-label" style="justify-content:center;display:flex;">Join Us</div>
+  <h2 class="section-title reveal">島本の未来に、<br>あなたの力を</h2>
+  <p class="section-body reveal">
+    クラウドファンディングの詳細は準備中です。<br>
+    今すぐ関心登録して、最新情報をいち早く受け取ってください。
+  </p>
+  <div class="cta-buttons reveal">
+    <a href="#funding" class="btn-primary cflink">🏮 支援プランを見る</a>
+    <a href="#demo" class="btn-secondary">📱 アプリをデモで見る</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">SLCP</div>
+  <div class="footer-sub">Shimamoto Local Connecting Project</div>
+  <div class="footer-copy">© 2026 Shimamoto Local Connecting Project. All rights reserved.</div>
+</footer>
+
+<script>
+  // ============================================================
+  // クラウドファンディングURL設定
+  // CAMPFIREでプロジェクト開設後、下のURLを書き換えてください
+  // ============================================================
+  const CAMPFIRE_URL = ""; // 例: "https://camp-fire.jp/projects/XXXXXX/view"
+
+  // リンクを動的に設定
+  document.querySelectorAll('.cflink').forEach(el => {
+    if (CAMPFIRE_URL) {
+      el.href = CAMPFIRE_URL;
+    } else {
+      // URLが未設定の場合はボタンの表示を変更
+      el.textContent = "🔜 準備中...クラファン開始をお待ちください";
+      el.classList.add('plan-btn-coming');
+      el.classList.remove('plan-btn');
+      el.removeAttribute('href');
+    }
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  reveals.forEach(el => observer.observe(el));
+
+  // Smooth scroll for nav links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+</body>
+</html>
